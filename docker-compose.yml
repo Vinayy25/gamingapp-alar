@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  # Ludo Game Backend Application
+  app:
+    build: .
+    container_name: ludo-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ludo_game
+      - DB_USER=ludo_user
+      - DB_PASSWORD=ludo_secure_password_2024
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=super_secure_jwt_secret_change_in_production_2024
+      - JWT_EXPIRES_IN=24h
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,https://yourdomain.com
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=100
+      - MAX_PLAYERS_PER_GAME=4
+      - MIN_PLAYERS_PER_GAME=2
+      - GAME_TIMEOUT_MS=300000
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - app_logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - ludo-network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ludo-postgres
+    environment:
+      POSTGRES_DB: ludo_game
+      POSTGRES_USER: ludo_user
+      POSTGRES_PASSWORD: ludo_secure_password_2024
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ludo_user -d ludo_game"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ludo-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: ludo-redis
+    command: redis-server --appendonly yes --requirepass redis_secure_password_2024
+    environment:
+      - REDIS_PASSWORD=redis_secure_password_2024
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ludo-network
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: ludo-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - ludo-network
+
+  # Database Migration Service
+  migrate:
+    build: .
+    container_name: ludo-migrate
+    command: npm run db:migrate
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ludo_game
+      - DB_USER=ludo_user
+      - DB_PASSWORD=ludo_secure_password_2024
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - ludo-network
+
+# Volumes
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
+
+# Networks
+networks:
+  ludo-network:
+    driver: bridge 
