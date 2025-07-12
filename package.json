@@ -5,8 +5,12 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
+    "start:no-redis": "node start-without-redis.js",
     "dev": "nodemon src/server.js",
     "test": "jest",
+    "test:server": "node full-test.js",
+    "test:api": "node api-test.js",
+    "test:simple": "node server-test.js",
     "db:migrate": "node src/scripts/migrate.js",
     "db:seed": "node src/scripts/seed.js"
   },
@@ -34,7 +38,8 @@
     "winston": "^3.11.0",
     "dotenv": "^16.3.1",
     "uuid": "^9.0.1",
-    "express-validator": "^7.0.1"
+    "express-validator": "^7.0.1",
+    "axios": "^1.4.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",

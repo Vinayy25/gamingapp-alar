@@ -449,6 +449,206 @@ For support and questions:
 - [ ] Advanced caching strategies
 - [ ] Real-time analytics
 - [ ] Performance monitoring
-- [ ] Automated testing
-- [ ] CI/CD pipeline
+  - [x] Automated testing
+  - [ ] CI/CD pipeline
+
 # gamingapp-alar
+
+## 🚀 Running the Backend Server
+
+### Prerequisites
+
+- Node.js 18+ installed
+- PostgreSQL installed and running
+- Redis (optional, for caching)
+
+### Quick Start
+
+1. **Install dependencies:**
+
+```bash
+npm install
+```
+
+2. **Set up environment variables:**
+   The `.env` file is already configured with default values:
+
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=ludo_game
+DB_USER=ludo_user
+DB_PASSWORD=Vinaychand@7
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+PORT=3000
+NODE_ENV=development
+```
+
+3. **Run database migrations:**
+
+```bash
+npm run db:migrate
+```
+
+4. **Start the server:**
+
+```bash
+npm start
+```
+
+The server will start on `http://localhost:3000`
+
+### Testing the Backend
+
+#### Option 1: Simple Test Server
+
+Run the simplified test server to verify basic functionality:
+
+```bash
+node server-test.js
+```
+
+#### Option 2: Full Server Test
+
+Run the comprehensive server test to check all imports and components:
+
+```bash
+node full-test.js
+```
+
+#### Option 3: API Test Suite
+
+Run the complete API test suite (server must be running):
+
+```bash
+# Start server in one terminal
+npm start
+
+# Run tests in another terminal
+node api-test.js
+```
+
+### Test Coverage
+
+The API test suite covers:
+
+- ✅ Health check endpoint
+- ✅ User registration
+- ✅ User login and authentication
+- ✅ User profile management
+- ✅ Game creation
+- ✅ Game joining
+- ✅ Available games listing
+- ✅ User games listing
+- ✅ Game details retrieval
+- ✅ Game starting
+- ✅ Game statistics
+- ✅ User statistics
+
+### API Endpoints
+
+#### Authentication
+
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login user
+- `GET /api/auth/profile` - Get user profile
+- `PUT /api/auth/profile` - Update user profile
+- `PUT /api/auth/password` - Change password
+- `GET /api/auth/stats` - Get user statistics
+
+#### Games
+
+- `POST /api/games/create` - Create new game
+- `POST /api/games/join` - Join existing game
+- `GET /api/games/available` - List available games
+- `GET /api/games/my-games` - Get user's games
+- `GET /api/games/:id` - Get game details
+- `POST /api/games/:id/start` - Start game
+- `DELETE /api/games/:id/leave` - Leave game
+- `GET /api/games/stats` - Get game statistics
+
+#### System
+
+- `GET /health` - Health check
+- `GET /` - API information
+
+### WebSocket Events
+
+The server supports real-time gameplay via Socket.io:
+
+- `join_game` - Join a game room
+- `leave_game` - Leave a game room
+- `roll_dice` - Roll dice in game
+- `move_piece` - Move game piece
+- `send_message` - Send chat message
+- `player_disconnect` - Handle player disconnection
+
+### Database Schema
+
+The backend uses PostgreSQL with the following tables:
+
+- `users` - User accounts and statistics
+- `games` - Game sessions
+- `game_players` - Player participation in games
+- `game_results` - Game outcomes
+- `game_moves` - Move history
+
+### Features
+
+- 🔐 JWT Authentication
+- 🎮 Complete Ludo Game Logic
+- 🌐 Real-time WebSocket Communication
+- 📊 Game Statistics and History
+- 🔄 Player Reconnection Support
+- 🛡️ Rate Limiting and Security
+- 📝 Comprehensive Logging
+- 🐳 Docker Support
+- 🧪 Full Test Coverage
+
+### Architecture
+
+The backend follows a modular architecture:
+
+```
+src/
+├── config/          # Configuration files
+├── controllers/     # Route handlers
+├── game/           # Game logic
+├── middleware/     # Express middleware
+├── models/         # Database models
+├── routes/         # API routes
+├── services/       # Business logic
+├── utils/          # Utility functions
+└── server.js       # Main server file
+```
+
+### Development
+
+For development with auto-reload:
+
+```bash
+npm run dev
+```
+
+### Production Deployment
+
+The backend is production-ready with:
+
+- Environment-based configuration
+- Error handling and logging
+- Security middleware
+- Docker support
+- Health checks
+
+### Troubleshooting
+
+If you encounter issues:
+
+1. **Database Connection:** Ensure PostgreSQL is running and credentials are correct
+2. **Port Conflicts:** Change the PORT in `.env` if 3000 is occupied
+3. **Migration Issues:** Run `npm run db:migrate` to create tables
+4. **Import Errors:** Run `node full-test.js` to check all imports
+
+### Support
+
+For issues or questions about the backend implementation, check the logs in the `logs/` directory or run the test suite to identify problems.

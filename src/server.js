@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
@@ -20,7 +22,26 @@ const SocketService = require("./services/SocketService");
 
 // Import utilities
 const logger = require("./utils/logger");
-const errorHandler = require("./middleware/errorHandler");
+// const { errorHandler } = require("./middleware/errorHandler"); // Temporarily disabled
+
+// Simple inline error handler
+const errorHandler = (err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Something went wrong";
+
+  logger.error("Error:", {
+    message: err.message,
+    stack: err.stack,
+    url: req.originalUrl,
+    method: req.method,
+  });
+
+  res.status(statusCode).json({
+    success: false,
+    message: message,
+    timestamp: new Date().toISOString(),
+  });
+};
 
 // Create Express app
 const app = express();
@@ -195,16 +216,22 @@ process.on("unhandledRejection", (reason, promise) => {
 // Start server
 const startServer = async () => {
   try {
-    // Initialize Redis connection (optional)
-    try {
-      await connectRedis();
-      logger.info("Redis connected successfully");
-    } catch (error) {
-      logger.warn(
-        "Redis connection failed, continuing without cache:",
-        error.message
-      );
-    }
+    // Initialize Redis connection (optional) - don't let it block startup
+    setTimeout(async () => {
+      try {
+        const redisClient = await connectRedis();
+        if (redisClient) {
+          logger.info("Redis connected successfully");
+        } else {
+          logger.info("Running without Redis cache");
+        }
+      } catch (error) {
+        logger.warn(
+          "Redis connection failed, continuing without cache:",
+          error.message
+        );
+      }
+    }, 1000); // Connect to Redis after server starts
 
     // Start HTTP server
     const port = config.server.port;
