@@ -10,6 +10,7 @@ const rateLimit = require("express-rate-limit");
 // Import configuration
 const config = require("./config/app");
 const { connectRedis } = require("./config/redis");
+const { swaggerServe, swaggerSetup } = require("./config/swagger");
 
 // Import routes
 const authRoutes = require("./routes/auth");
@@ -133,6 +134,9 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Swagger API Documentation
+app.use("/api-docs", swaggerServe, swaggerSetup);
+
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/games", gameRoutes);
@@ -144,8 +148,13 @@ app.get("/", (req, res) => {
     success: true,
     message: "Ludo Game Backend API",
     version: "1.0.0",
-    documentation: "/api/docs",
+    documentation: "/api-docs",
     health: "/health",
+    endpoints: {
+      auth: "/api/auth",
+      games: "/api/games",
+      users: "/api/users",
+    },
   });
 });
 
@@ -240,7 +249,8 @@ const startServer = async () => {
         `Server started on port ${port} in ${config.server.environment} mode`
       );
       logger.info(`Health check available at: http://localhost:${port}/health`);
-      logger.info(`API documentation: http://localhost:${port}/api/docs`);
+      logger.info(`API documentation: http://localhost:${port}/api-docs`);
+      logger.info(`Swagger UI: http://localhost:${port}/api-docs`);
     });
   } catch (error) {
     logger.error("Failed to start server:", error);

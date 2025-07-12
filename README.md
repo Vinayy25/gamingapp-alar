@@ -528,6 +528,29 @@ npm start
 node api-test.js
 ```
 
+### 📚 Interactive API Documentation (Swagger)
+
+Access the interactive Swagger UI for comprehensive API testing:
+
+**URL**: `http://localhost:3000/api-docs`
+
+**Features**:
+
+- 🔍 Interactive API explorer
+- 🧪 Test endpoints directly from browser
+- 🔐 JWT authentication support
+- 📝 Request/response examples
+- 📋 Complete schema documentation
+
+**How to use**:
+
+1. Start the server: `npm run start:no-redis`
+2. Open: `http://localhost:3000/api-docs`
+3. Click "Authorize" and enter: `Bearer YOUR_JWT_TOKEN`
+4. Test any endpoint by clicking "Try it out"
+
+**Test Swagger setup**: `npm run test:swagger`
+
 ### Test Coverage
 
 The API test suite covers:
