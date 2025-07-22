@@ -69,36 +69,48 @@ const disconnectRedis = async () => {
   }
 };
 
-// Game state cache methods
+// Game state cache methods (Redis optional)
 const setGameState = async (gameId, gameState, ttl = 3600) => {
-  if (!client) return false;
+  // Return immediately if Redis is disabled or not connected
+  if (process.env.SKIP_REDIS === "true" || !client) {
+    return false;
+  }
+
   try {
     await client.setEx(`game:${gameId}`, ttl, JSON.stringify(gameState));
     return true;
   } catch (error) {
-    console.error("Error setting game state in Redis:", error);
+    console.error("Error setting game state in Redis:", error.message);
     return false;
   }
 };
 
 const getGameState = async (gameId) => {
-  if (!client) return null;
+  // Return immediately if Redis is disabled or not connected
+  if (process.env.SKIP_REDIS === "true" || !client) {
+    return null;
+  }
+
   try {
     const state = await client.get(`game:${gameId}`);
     return state ? JSON.parse(state) : null;
   } catch (error) {
-    console.error("Error getting game state from Redis:", error);
+    console.error("Error getting game state from Redis:", error.message);
     return null;
   }
 };
 
 const deleteGameState = async (gameId) => {
-  if (!client) return false;
+  // Return immediately if Redis is disabled or not connected
+  if (process.env.SKIP_REDIS === "true" || !client) {
+    return false;
+  }
+
   try {
-    await client.del(`game:${gameId}`);
-    return true;
+    const result = await client.del(`game:${gameId}`);
+    return result > 0; // Returns true if key was deleted
   } catch (error) {
-    console.error("Error deleting game state from Redis:", error);
+    console.error("Error deleting game state from Redis:", error.message);
     return false;
   }
 };

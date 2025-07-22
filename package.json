@@ -14,7 +14,8 @@
     "test:swagger": "node test-swagger.js",
     "test:websocket": "node websocket-test.js",
     "test:gamelogic": "node game-logic-test.js",
-    "test:all": "npm run test:server && npm run test:api && npm run test:websocket",
+    "test:redis": "node test-redis-optional.js",
+    "test:all": "npm run test:server && npm run test:api && npm run test:redis && npm run test:websocket",
     "db:migrate": "node src/scripts/migrate.js",
     "db:seed": "node src/scripts/seed.js"
   },

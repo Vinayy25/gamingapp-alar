@@ -61,12 +61,21 @@ class GameService {
         return this.activeGames.get(gameId);
       }
 
-      // Try to restore from Redis cache
-      const cachedState = await getGameState(gameId);
-      if (cachedState) {
-        const gameInstance = this.restoreGameFromState(cachedState);
-        this.activeGames.set(gameId, gameInstance);
-        return gameInstance;
+      // Try to restore from Redis cache (only if Redis is enabled)
+      if (process.env.SKIP_REDIS !== "true") {
+        try {
+          const cachedState = await getGameState(gameId);
+          if (cachedState) {
+            const gameInstance = this.restoreGameFromState(cachedState);
+            this.activeGames.set(gameId, gameInstance);
+            logger.debug(`Game ${gameId} restored from Redis cache`);
+            return gameInstance;
+          }
+        } catch (redisError) {
+          logger.warn(
+            `Failed to restore from Redis, creating new instance: ${redisError.message}`
+          );
+        }
       }
 
       // Create new instance from database
@@ -376,13 +385,21 @@ class GameService {
     }
   }
 
-  // Cache game state in Redis
+  // Cache game state in Redis (optional)
   async cacheGameState(gameId, gameState) {
+    // Skip caching if Redis is disabled
+    if (process.env.SKIP_REDIS === "true") {
+      return;
+    }
+
     try {
-      await setGameState(gameId, gameState, 3600); // 1 hour TTL
+      const result = await setGameState(gameId, gameState, 3600); // 1 hour TTL
+      if (result) {
+        logger.debug(`Game state cached for ${gameId}`);
+      }
     } catch (error) {
-      logger.warn(`Failed to cache game state for ${gameId}:`, error);
-      // Continue without caching
+      logger.warn(`Failed to cache game state for ${gameId}:`, error.message);
+      // Continue without caching - this is not critical
     }
   }
 
@@ -414,8 +431,19 @@ class GameService {
         }
       }
 
-      // Remove from Redis cache
-      await deleteGameState(gameId);
+      // Remove from Redis cache (only if Redis is enabled)
+      if (process.env.SKIP_REDIS !== "true") {
+        try {
+          const result = await deleteGameState(gameId);
+          if (result) {
+            logger.debug(`Game ${gameId} removed from Redis cache`);
+          }
+        } catch (redisError) {
+          logger.warn(
+            `Failed to remove game ${gameId} from Redis: ${redisError.message}`
+          );
+        }
+      }
 
       logger.gameEvent("Game cleaned up", { gameId });
     } catch (error) {

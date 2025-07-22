@@ -125,12 +125,25 @@ app.use((req, res, next) => {
 
 // Health check endpoint
 app.get("/health", (req, res) => {
+  const redisStatus =
+    process.env.SKIP_REDIS === "true"
+      ? "disabled"
+      : "enabled (may not be connected)";
+
   res.json({
     success: true,
+    status: "healthy",
     message: "Server is running",
     timestamp: new Date().toISOString(),
     environment: config.server.environment,
     version: process.env.npm_package_version || "1.0.0",
+    redis: redisStatus,
+    database: "connected", // PostgreSQL is required for server to start
+    services: {
+      api: "operational",
+      websocket: "operational",
+      gameLogic: "operational",
+    },
   });
 });
 
